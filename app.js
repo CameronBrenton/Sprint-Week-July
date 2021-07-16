@@ -3,7 +3,7 @@ const { urlencoded } = require('express');
 const express = require('express');
 const session = require('express-session');
 const app = express();
-const port = 3000;
+const port = 3001;
 const path = require('path');
 const bcrypt = require('bcrypt');
 
@@ -202,9 +202,7 @@ class BST {
 
 const bst = new BST();
 
-//const RouteVar = pool.query(`SELECT * FROM role_access_routes WHERE role_id = 1`);
-
-let RouteVar = pool.query(`SELECT * FROM role_access_routes where role_id = 1`, function (err, results) {
+/*let RouteVar = pool.query(`SELECT * FROM role_access_routes where role_id = 1`,  function (err, results) {
     if (err){
         console.log(err);
     } else {
@@ -213,13 +211,28 @@ let RouteVar = pool.query(`SELECT * FROM role_access_routes where role_id = 1`, 
             bst.add(results.rows[i]);
         }
     }
-});
+});*/
 
+let RouteVar = pool.query(`SELECT * FROM role_access_routes WHERE role_id = 1`)
+.then(res => console.log("it worked", res)) // brianc
+.catch(err => console.error('Error executing query', err.stack));
+
+
+/**
+ *          Promise
+ *             |
+ *          Pending (undefined)
+ *          /      \
+ *     Resolved    Rejected ("throw" err)
+ * (use returned data)
+ */
 
 bst.add(RouteVar);
 console.log(bst.isPresent(RouteVar));
-console.log(bst.RouteVar);
-//console.log(bst)
+//console.log(bst.RouteVar);
+///console.log(bst.root.data);
+console.log(bst);
+//console.log(bst.find(RouteVar));
 //console.log(bst.isPresent(4));
 
 //console.log(bst.root.Node)
