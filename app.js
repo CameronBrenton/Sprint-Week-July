@@ -25,7 +25,7 @@ app.use(express.urlencoded({
 
 app.get("/", function(req, res) {
     if(req.session.count === undefined){
-        req.session.count = 0
+        req.session.count = 0;
     }
     const count = req.session.count;
     req.session.count = req.session.count + 1;
@@ -70,11 +70,11 @@ app.post("/signUp",  async function(req, res){
     let email = req.body.email;
     let password = req.body.password;
     let encrypted_password = await bcrypt.hash(password, 10);
-    let results = await pool.query('SELECT * FROM users where email = $1', [email])
+    let results = await pool.query('SELECT * FROM users where email = $1', [email]);
     if(results.rows.length > 0){
         res.send("error! there is already an account with this email");
     }else{
-        let insert_result = await pool.query('INSERT INTO users (email, password) VALUES ($1, $2)', [email, encrypted_password])
+        let insert_result = await pool.query('INSERT INTO users (email, password) VALUES ($1, $2)', [email, encrypted_password]);
         res.send("created account!");
     }
 });
@@ -148,7 +148,7 @@ class BST {
 			if (current === null) {
 				return null;
 			}
-		};
+		}
 		return current;
 	}
 	isPresent(data) {
@@ -162,7 +162,7 @@ class BST {
 			} else {
 				current = current.right;
 			}
-		};
+		}
 		return false;
 	}
 	remove(data) {
@@ -197,12 +197,12 @@ class BST {
 		};
 		this.root = removeNode(this.root, data);
 	}
-};
+}
 
 
 const bst = new BST();
 
-//const RouteVar = pool.query(`SELECT * FROM role_access_routes WHERE role_id = 1`)
+//const RouteVar = pool.query(`SELECT * FROM role_access_routes WHERE role_id = 1`);
 
 let RouteVar = pool.query(`SELECT * FROM role_access_routes where role_id = 1`, function (err, results) {
     if (err){
@@ -211,8 +211,8 @@ let RouteVar = pool.query(`SELECT * FROM role_access_routes where role_id = 1`, 
         var i;
         for ( i = 0; i < results.rowCount;i++){
             bst.add(results.rows[i]);
-        };
-    };
+        }
+    }
 });
 
 
