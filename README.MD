@@ -8,4 +8,4 @@ As allows we will be working in the paired programming style. This project is a 
 
 Logan Tucker,
 Jacob Sheppard,
-Cameron Brenton,
+Cameron Brenton
