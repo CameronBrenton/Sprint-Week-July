@@ -1,11 +1,10 @@
-
-const { urlencoded } = require('express');
 const express = require('express');
 const session = require('express-session');
 const app = express();
-const port = 3001;
+const port = 3000;
 const path = require('path');
 const bcrypt = require('bcrypt');
+const treeify = require('treeify');
 
 const Pool = require('pg').Pool;
 const pool = new Pool({
@@ -115,7 +114,7 @@ class BST {
 			this.root = new Node(data);
 			return;
 		} else {
-			const searchTree = function (node) {
+			const searchTree = function(node) {
 				if (data < node.data) {
 					if (node.left === null) {
 						node.left = new Node(data);
@@ -136,6 +135,20 @@ class BST {
 			};
 			return searchTree(node);
 		}
+	}
+	findMin() {
+		let current = this.root;
+		while (current.left !== null) {
+			current = current.left;
+		}
+		return current.data;
+	}
+	findMax() {
+		let current = this.root;
+		while (current.right !== null) {
+			current = current.right;
+		}
+		return current.data;
 	}
 	find(data) {
 		let current = this.root;
@@ -166,7 +179,7 @@ class BST {
 		return false;
 	}
 	remove(data) {
-		const removeNode = function (node, data) {
+		const removeNode = function(node, data) {
 			if (node == null) {
 				return null;
 			}
@@ -187,7 +200,7 @@ class BST {
 				node.data = tempNode.data;
 				node.right = removeNode(node.right, tempNode.data);
 				return node;
-			} else if (data < node.data) {
+			} else if ( data < node.data) {
 				node.left = removeNode(node.left, data);
 				return node;
 			} else {
@@ -197,26 +210,126 @@ class BST {
 		};
 		this.root = removeNode(this.root, data);
 	}
+
 }
+
 
 
 const bst = new BST();
 
-/*let RouteVar = pool.query(`SELECT * FROM role_access_routes where role_id = 1`,  function (err, results) {
-    if (err){
-        console.log(err);
-    } else {
-        var i;
-        for ( i = 0; i < results.rowCount;i++){
-            bst.add(results.rows[i]);
-        }
-    }
-});*/
 
-let RouteVar = pool.query(`SELECT * FROM role_access_routes WHERE role_id = 1`)
-.then(res => console.log("it worked", res)) // brianc
-.catch(err => console.error('Error executing query', err.stack));
+/*
+try{
+	pool.query(`SELECT * FROM role_access_routes where role_id = 1`, async function (err, results) {
+	if (err){
+	console.log(err);
+	} else {
+	var i;
+	for ( i = 0; i < results.rowCount;i++){
+		routeVarArray.push(results.rows[i]);
+		console.log(routeVarArray);
+	}
+	}
+});
+}catch(err){
+	console.log(err);
+}
+*/
 
+//console.log("RouteVarArray: ", routeVarArray);
+
+const RouteVar = new Promise(function(resolve, reject) {
+	return pool.query(`SELECT * FROM roles_and_their_routes WHERE role_name = 'Administrator'`, function (err, result){
+		if (err) reject(err);
+		//console.log(result);
+		resolve(result);
+		
+	});
+});
+
+
+
+/*
+RouteVar
+.then(function(result){
+	//console.log("RouteVarArray: ", result);
+	bst.add(result);
+	console.log(bst);
+})
+.catch(console.log);
+*/
+
+const updateBST = async (routeVar) =>{
+	const data = await routeVar;
+	//console.log("Updating BST with: ", data);
+	for ( let i = 0; i < data.rowCount;i++){
+		bst.add(data.rows[i]);
+		console.log(data.rows[i]);
+	}
+	console.log(treeify.asTree(bst, true));
+}
+//(async function() {
+	 updateBST(RouteVar);
+//})();
+
+const bst2 = new BST();
+
+const RouteVar2 = new Promise(function(resolve, reject) {
+	return pool.query(`SELECT * FROM roles_and_their_routes WHERE role_name = 'Super User'`, function (err, result){
+		if (err) reject(err);
+		//console.log(result);
+		resolve(result);
+	});
+});
+
+const updateBST2 = async (routeVar) =>{
+	const data = await routeVar;
+	//console.log("Updating BST with: ", data);
+	for ( let i = 0; i < data.rowCount;i++){
+		bst2.add(data.rows[i]);
+		console.log(data.rows[i]);
+	}
+	console.log(treeify.asTree(bst2, true));
+}
+//(async function() {
+	 updateBST2(RouteVar2);
+//})();
+
+const bst3 = new BST();
+
+const RouteVar3 = new Promise(function(resolve, reject) {
+	return pool.query(`SELECT * FROM roles_and_their_routes WHERE role_name = 'Customer'`, function (err, result){
+		if (err) reject(err);
+		//console.log(result);
+		resolve(result);
+	});
+});
+
+const updateBST3 = async (routeVar) =>{
+	const data = await routeVar;
+	//console.log("Updating BST with: ", data);
+	for ( let i = 0; i < data.rowCount;i++){
+		bst3.add(data.rows[i]);
+		console.log(data.rows[i]);
+	}
+	console.log(treeify.asTree(bst3, true));
+}
+//(async function() {
+	 updateBST3(RouteVar3);
+//})();
+
+//console.log(bst.isPresent(routeVarArray));
+//console.log(bst);
+//console.log(bst);
+//console.log(data);
+//console.log(bst.find.RouteVar);
+//console.log(bst.data);
+//console.log("BST: ", bst);
+//console.log(bst.find(RouteVar));
+//console.log(bst.isPresent(4));
+
+//console.log(bst.root.Node);
+//console.log(bst.isPresent(1));
 
 /**
  *          Promise
@@ -225,15 +338,5 @@ let RouteVar = pool.query(`SELECT * FROM role_access_routes WHERE role_id = 1`)
  *          /      \
  *     Resolved    Rejected ("throw" err)
  * (use returned data)
- */
-
-bst.add(RouteVar);
-console.log(bst.isPresent(RouteVar));
-//console.log(bst.RouteVar);
-///console.log(bst.root.data);
-console.log(bst);
-//console.log(bst.find(RouteVar));
-//console.log(bst.isPresent(4));
-
-//console.log(bst.root.Node)
-//console.log(bst.isPresent(1));
+ *
+**/
