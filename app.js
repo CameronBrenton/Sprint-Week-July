@@ -34,9 +34,7 @@ app.get("/", function(req, res) {
     res.send(`you've visited ${count} times!`);
 });
 
-app.listen(port, function(){
-    console.log(`listening at http://localhost:${port}`);
-});
+
 
 
 //AUTHENTICATION
@@ -89,12 +87,21 @@ app.get("/secret", async function (req, res){
     }
 });
 
+app.listen(port, function () {
+	console.log(`listening at http://localhost:${port}`);
+});
+
 
 //AUTHORIZATION
 
 
-
-
+const BalanceFactor = {
+	UNBALANCED_RIGHT: 1,
+	SLIGHTLY_UNBALANCED_RIGHT: 2,
+	BALANCED: 3,
+	SLIGHTLY_UNBALANCED_LEFT: 4,
+	UNBALANCED_LEFT: 5
+};
 
 
 // Node Object
@@ -225,6 +232,7 @@ class BST {
 
 }
 
+
 // NODE BALANCING AVL TREE EXTENSION. EXTENDS THE BST CLASS
 class AVLTree extends BST {
 	constructor(compareFn = defaultCompare) {
@@ -346,15 +354,26 @@ class AVLTree extends BST {
 		}
 		return node;
 	}
+	search(key) {
+		return this.searchNode(this.root, key); // {1}
+	}
+	searchNode(node, key) {
+		if (node == null) { // {2}
+			return false;
+		}
+		if (this.compareFn(key, node.key) === Compare.LESS_THAN) { // {3}
+			return this.searchNode(node.left, key); // {4}
+		} else if (
+			this.compareFn(key, node.key) === Compare.BIGGER_THAN
+		) { // {5}
+			return this.searchNode(node.right, key); // {6}
+		} else {
+			return true; // {7}
+		}
+	}
 }
 
-const BalanceFactor = {
-	UNBALANCED_RIGHT: 1,
-	SLIGHTLY_UNBALANCED_RIGHT: 2,
-	BALANCED: 3,
-	SLIGHTLY_UNBALANCED_LEFT: 4,
-	UNBALANCED_LEFT: 5
-};
+
 
 const bst = new AVLTree();
 
@@ -376,7 +395,7 @@ const RouteVar = new Promise(function(resolve, reject) {
 const updateBST = async (routeVar) =>{
 	const data = await routeVar;
 	for ( let i = 0; i < data.rowCount;i++){
-		bst.insert(data.rows[i]);
+		bst.insert(data.rows[i].route_id);
 		
 	}
 	console.log(treeify.asTree(bst, false));
@@ -385,7 +404,7 @@ const updateBST = async (routeVar) =>{
 updateBST(RouteVar);
 
 
-const bst2 = new BST();
+const bst2 = new AVLTree();
 
 const RouteVar2 = new Promise(function(resolve, reject) {
 	return pool.query(`SELECT * FROM roles_and_their_routes WHERE role_name = 'Super User'`, function (err, result){
@@ -406,7 +425,7 @@ const updateBST2 = async (routeVar) =>{
 updateBST2(RouteVar2);
 
 
-const bst3 = new BST();
+const bst3 = new AVLTree();
 
 const RouteVar3 = new Promise(function(resolve, reject) {
 	return pool.query(`SELECT * FROM roles_and_their_routes WHERE role_name = 'Customer'`, function (err, result){
@@ -418,7 +437,7 @@ const RouteVar3 = new Promise(function(resolve, reject) {
 const updateBST3 = async (routeVar) =>{
 	const data = await routeVar;
 	for ( let i = 0; i < data.rowCount;i++){
-		bst3.insert(data.rows[i]);
+		bst3.insert(data.rows[i].route_id);
 	
 	}
 	console.log(treeify.asTree(bst3, false));
@@ -428,18 +447,39 @@ const updateBST3 = async (routeVar) =>{
 updateBST3(RouteVar3);
 
 
-bst.insert(11);
-bst.insert(5);
-bst.insert(7);
-bst.insert(15);
-bst.insert(5);
-bst.insert(3);
-bst.insert(9);
-bst.insert(8);
-bst.insert(10);
-bst.insert(13);
-bst.insert(12);
-bst.insert(14);
-bst.insert(20);
-bst.insert(18);
-bst.insert(25);
+
+/***
+console.log(bst.search(1) ? 'Key 1 found.' : 'Key 1 not found.');
+console.log(bst.search(2) ? 'Key 2 found.' : 'Key 2 not found.');
+console.log(bst.search(3) ? 'Key 3 found.' : 'Key 3 not found.');
+console.log(bst.search(4) ? 'Key 4 found.' : 'Key 4 not found.');
+console.log(bst.search(5) ? 'Key 5 found.' : 'Key 5 not found.');
+console.log(bst.search(6) ? 'Key 6 found.' : 'Key 6 not found.');
+console.log(bst.search(7) ? 'Key 7 found.' : 'Key 7 not found.');
+console.log(bst.search(9) ? 'Key 8 found.' : 'Key 8 not found.');
+console.log(bst.search(10) ? 'Key 9 found.' : 'Key 9 not found.');
+console.log(bst.search(11) ? 'Key 10 found.' : 'Key 10 not found.');
+
+console.log(bst2.search(1) ? 'Key 1 found.' : 'Key 1 not found.');
+console.log(bst2.search(2) ? 'Key 2 found.' : 'Key 2 not found.');
+console.log(bst2.search(3) ? 'Key 3 found.' : 'Key 3 not found.');
+console.log(bst2.search(4) ? 'Key 4 found.' : 'Key 4 not found.');
+console.log(bst2.search(5) ? 'Key 5 found.' : 'Key 5 not found.');
+console.log(bst2.search(6) ? 'Key 6 found.' : 'Key 6 not found.');
+console.log(bst2.search(7) ? 'Key 7 found.' : 'Key 7 not found.');
+console.log(bst2.search(9) ? 'Key 8 found.' : 'Key 8 not found.');
+console.log(bst2.search(10) ? 'Key 9 found.' : 'Key 9 not found.');
+console.log(bst2.search(11) ? 'Key 10 found.' : 'Key 10 not found.');
+
+console.log(bst3.search(1) ? 'Key 1 found.' : 'Key 1 not found.');
+console.log(bst3.search(2) ? 'Key 2 found.' : 'Key 2 not found.');
+console.log(bst3.search(3) ? 'Key 3 found.' : 'Key 3 not found.');
+console.log(bst3.search(4) ? 'Key 4 found.' : 'Key 4 not found.');
+console.log(bst3.search(5) ? 'Key 5 found.' : 'Key 5 not found.');
+console.log(bst3.search(6) ? 'Key 6 found.' : 'Key 6 not found.');
+console.log(bst3.search(7) ? 'Key 7 found.' : 'Key 7 not found.');
+console.log(bst3.search(9) ? 'Key 8 found.' : 'Key 8 not found.');
+console.log(bst3.search(10) ? 'Key 9 found.' : 'Key 9 not found.');
+console.log(bst3.search(11) ? 'Key 10 found.' : 'Key 10 not found.');
+
+***/
