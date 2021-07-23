@@ -5,6 +5,9 @@ const port = 3000;
 const path = require('path');
 const bcrypt = require('bcrypt');
 const treeify = require('treeify');
+const Compare = require('compare');
+const defaultCompare = require('default-compare');
+
 
 const Pool = require('pg').Pool;
 const pool = new Pool({
@@ -96,17 +99,40 @@ app.get("/secret", async function (req, res){
 
 // Node Object
 class Node {
-	constructor(data, left = null, right = null) {
-		this.data = data;
-		this.left = left;
-		this.right = right;
+	constructor(key) {
+	  this.key = key; 
+	  this.left = null; 
+	  this.right = null; 
 	}
-}
+      }
 
 // Binary Tree
 class BST {
-	constructor() {
-		this.root = null;
+	constructor(compareFn = defaultCompare) {
+		this.compareFn = compareFn; // used to compare node values
+		this.root = null; // {1} root node of type Node
+	}
+	insert(key) {
+		if (this.root == null) { // {1}
+			this.root = new Node(key); // {2}
+		} else {
+			this.insertNode(this.root, key); // {3}
+		}
+	}
+	insertNode(node, key) {
+		if (this.compareFn(key, node.key) === Compare.LESS_THAN) { // {4}
+			if (node.left == null) { // {5}
+				node.left = new Node(key); // {6}
+			} else {
+				this.insertNode(node.left, key); // {7}
+			}
+		} else {
+			if (node.right == null) { // {8}
+				node.right = new Node(key); // {9}
+			} else {
+				this.insertNode(node.right, key); // {10}
+			}
+		}
 	}
 	add(data) {
 		const node = this.root;
@@ -135,20 +161,6 @@ class BST {
 			};
 			return searchTree(node);
 		}
-	}
-	findMin() {
-		let current = this.root;
-		while (current.left !== null) {
-			current = current.left;
-		}
-		return current.data;
-	}
-	findMax() {
-		let current = this.root;
-		while (current.right !== null) {
-			current = current.right;
-		}
-		return current.data;
 	}
 	find(data) {
 		let current = this.root;
@@ -213,7 +225,7 @@ class BST {
 
 }
 
-// NODE BALANCING AVL TREE EXTENSION
+// NODE BALANCING AVL TREE EXTENSION. EXTENDS THE BST CLASS
 class AVLTree extends BST {
 	constructor(compareFn = defaultCompare) {
 		super(compareFn);
@@ -344,33 +356,16 @@ const BalanceFactor = {
 	UNBALANCED_LEFT: 5
 };
 
-const bst = new BST();
+const bst = new AVLTree();
 
 
-/*
-try{
-	pool.query(`SELECT * FROM role_access_routes where role_id = 1`, async function (err, results) {
-	if (err){
-	console.log(err);
-	} else {
-	var i;
-	for ( i = 0; i < results.rowCount;i++){
-		routeVarArray.push(results.rows[i]);
-		console.log(routeVarArray);
-	}
-	}
-});
-}catch(err){
-	console.log(err);
-}
-*/
 
-//console.log("RouteVarArray: ", routeVarArray);
+
+
 
 const RouteVar = new Promise(function(resolve, reject) {
 	return pool.query(`SELECT * FROM roles_and_their_routes WHERE role_name = 'Administrator'`, function (err, result){
 		if (err) reject(err);
-		//console.log(result);
 		resolve(result);
 		
 	});
@@ -378,94 +373,73 @@ const RouteVar = new Promise(function(resolve, reject) {
 
 
 
-/*
-RouteVar
-.then(function(result){
-	//console.log("RouteVarArray: ", result);
-	bst.add(result);
-	console.log(bst);
-})
-.catch(console.log);
-*/
-
 const updateBST = async (routeVar) =>{
 	const data = await routeVar;
-	//console.log("Updating BST with: ", data);
 	for ( let i = 0; i < data.rowCount;i++){
-		bst.add(data.rows[i]);
-		console.log(data.rows[i]);
+		bst.insert(data.rows[i]);
+		
 	}
-	console.log(treeify.asTree(bst, true));
-}
-//(async function() {
-	 updateBST(RouteVar);
-//})();
+	console.log(treeify.asTree(bst, false));
+};
+
+updateBST(RouteVar);
+
 
 const bst2 = new BST();
 
 const RouteVar2 = new Promise(function(resolve, reject) {
 	return pool.query(`SELECT * FROM roles_and_their_routes WHERE role_name = 'Super User'`, function (err, result){
 		if (err) reject(err);
-		//console.log(result);
 		resolve(result);
 	});
 });
 
 const updateBST2 = async (routeVar) =>{
 	const data = await routeVar;
-	//console.log("Updating BST with: ", data);
 	for ( let i = 0; i < data.rowCount;i++){
-		bst2.add(data.rows[i]);
-		console.log(data.rows[i]);
+		bst2.insert(data.rows[i]);
+		
 	}
-	console.log(treeify.asTree(bst2, true));
-}
-//(async function() {
-	 updateBST2(RouteVar2);
-//})();
+	console.log(treeify.asTree(bst2, false));
+};
+
+updateBST2(RouteVar2);
+
 
 const bst3 = new BST();
 
 const RouteVar3 = new Promise(function(resolve, reject) {
 	return pool.query(`SELECT * FROM roles_and_their_routes WHERE role_name = 'Customer'`, function (err, result){
 		if (err) reject(err);
-		//console.log(result);
 		resolve(result);
 	});
 });
 
 const updateBST3 = async (routeVar) =>{
 	const data = await routeVar;
-	//console.log("Updating BST with: ", data);
 	for ( let i = 0; i < data.rowCount;i++){
-		bst3.add(data.rows[i]);
-		console.log(data.rows[i]);
+		bst3.insert(data.rows[i]);
+	
 	}
-	console.log(treeify.asTree(bst3, true));
-}
-//(async function() {
-	 updateBST3(RouteVar3);
-//})();
+	console.log(treeify.asTree(bst3, false));
+};
 
-//console.log(bst.isPresent(routeVarArray));
-//console.log(bst);
-//console.log(bst);
-//console.log(data);
-//console.log(bst.find.RouteVar);
-//console.log(bst.data);
-//console.log("BST: ", bst);
-//console.log(bst.find(RouteVar));
-//console.log(bst.isPresent(4));
 
-//console.log(bst.root.Node);
-//console.log(bst.isPresent(1));
+updateBST3(RouteVar3);
 
-/**
- *          Promise
- *             |
- *          Pending (undefined)
- *          /      \
- *     Resolved    Rejected ("throw" err)
- * (use returned data)
- *
-**/
+
+bst.insert(11);
+bst.insert(5);
+bst.insert(7);
+bst.insert(15);
+bst.insert(5);
+bst.insert(3);
+bst.insert(9);
+bst.insert(8);
+bst.insert(10);
+bst.insert(13);
+bst.insert(12);
+bst.insert(14);
+bst.insert(20);
+bst.insert(18);
+bst.insert(25);
